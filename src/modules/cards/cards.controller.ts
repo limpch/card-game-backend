@@ -9,7 +9,19 @@ class CardsController {
 		try {
 			const cards = await cardsService.getAllCards()
 
-			responseToClient(res, cards)
+			return responseToClient(res, cards)
+		} catch (error) {
+			next(error)
+		}
+	}
+
+	async getCardById(req: Request, res: Response, next: NextFunction) {
+		try {
+			const id = Number(req.params.id)
+
+			const card = await cardsService.getCardById(id)
+
+			return responseToClient(res, card)
 		} catch (error) {
 			next(error)
 		}
@@ -21,7 +33,7 @@ class CardsController {
 
 			const card = await cardsService.createCard(dto)
 
-			responseToClient(res, card)
+			return responseToClient(res, card)
 		} catch (error) {
 			next(error)
 		}
@@ -34,20 +46,7 @@ class CardsController {
 
 			const card = await cardsService.updateCard(id, dto)
 
-			responseToClient(res, card)
-		} catch (error) {
-			next(error)
-		}
-	}
-
-	async toggleActiveCard(req: Request, res: Response, next: NextFunction) {
-		try {
-			const id = Number(req.params.id)
-			const active = req.query.active ? Boolean(req.query.active) : undefined
-
-			const card = await cardsService.toggleActiveCard(id, active)
-
-			responseToClient(res, card)
+			return responseToClient(res, card)
 		} catch (error) {
 			next(error)
 		}
@@ -59,7 +58,7 @@ class CardsController {
 
 			await cardsService.deleteCard(id)
 
-			responseToClient(res, null)
+			return responseToClient(res, null)
 		} catch (error) {
 			next(error)
 		}

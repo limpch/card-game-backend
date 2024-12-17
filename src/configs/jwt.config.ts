@@ -1,4 +1,4 @@
 export const jwtConfig = () => ({
 	secret: process.env.JWT_SECRET,
-	expiresIn: "3h",
+	expiresIn: "12h",
 })

@@ -1,15 +1,16 @@
 import jwt from "jsonwebtoken"
 import { jwtConfig } from "src/configs/jwt.config"
+import { IUserPayload } from "src/types/user-payload"
 
 class TokenService {
-	async generateToken(userId: number, telegramLogin: string, role: string) {
-		return jwt.sign({ id: userId, telegramLogin, role }, jwtConfig().secret, {
+	generateToken(payload: IUserPayload) {
+		return jwt.sign(payload, jwtConfig().secret, {
 			expiresIn: jwtConfig().expiresIn,
 		})
 	}
 
-	async verifyToken(token: string) {
-		return jwt.verify(token, jwtConfig().secret)
+	verifyToken(token: string) {
+		return jwt.verify(token.split(" ")[1], jwtConfig().secret) as IUserPayload
 	}
 }
 

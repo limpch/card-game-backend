@@ -1,4 +1,4 @@
-import { BelongsToMany, Column, DataType, Model, Table } from "sequelize-typescript"
+import { BelongsToMany, Column, DataType, HasMany, Model, Table } from "sequelize-typescript"
 import { User } from "./User.model"
 import { UserCharacter } from "./UserCharacter.model"
 
@@ -22,6 +22,12 @@ export class Character extends Model {
 	@Column({ allowNull: false, type: DataType.BOOLEAN, defaultValue: true })
 	active: boolean
 
+	@Column({ allowNull: false, type: DataType.BOOLEAN, defaultValue: false })
+	public: boolean
+
 	@BelongsToMany(() => User, () => UserCharacter)
 	users: User[]
+
+	@HasMany(() => User)
+	usersActiveCharacter: User[]
 }

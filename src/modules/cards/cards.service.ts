@@ -1,14 +1,25 @@
 import { Card } from "src/models/Card.model"
 import CreateCardDto from "./dto/create-card.dto"
 import UpdateCardDto from "./dto/update-card.dto"
+import { ApiError } from "src/common/ApiError"
 
 class CardsService {
 	async getAllCards() {
-		return Card.findAll()
+		const cards = await Card.findAll({ where: { active: true } })
+
+		return cards
+	}
+
+	async getAllFreeCards() {
+		const cards = await Card.findAll({ where: { price: 0, active: true } })
+
+		return cards
 	}
 
 	async getCardById(id: number) {
-		return Card.findOne({ where: { id } })
+		const card = await Card.findOne({ where: { id } })
+
+		return card
 	}
 
 	async createCard(dto: CreateCardDto) {
@@ -27,7 +38,7 @@ class CardsService {
 	async updateCard(id: number, dto: UpdateCardDto) {
 		const card = await this.getCardById(id)
 
-		if (!card) throw new Error("Card not found")
+		if (!card) throw new ApiError("Карта не найдена", 404)
 
 		for (const key in dto) {
 			card[key] = dto[key]
@@ -37,22 +48,10 @@ class CardsService {
 		return card
 	}
 
-	async toggleActiveCard(id: number, active?: boolean) {
-		const card = await this.getCardById(id)
-
-		if (!card) throw new Error("Card not found")
-
-		card.active = active ?? !card.active
-
-		await card.save()
-
-		return card
-	}
-
 	async deleteCard(id: number) {
 		const card = await this.getCardById(id)
 
-		if (!card) throw new Error("Card not found")
+		if (!card) throw new ApiError("Карта не найдена", 404)
 
 		await card.destroy()
 	}

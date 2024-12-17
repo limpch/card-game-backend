@@ -15,6 +15,18 @@ class CharactersController {
 		}
 	}
 
+	async getCharacterById(req: Request, res: Response, next: NextFunction) {
+		try {
+			const id = Number(req.params.id)
+
+			const character = await charactersService.getCharacterById(id)
+
+			return responseToClient(res, character)
+		} catch (error) {
+			next(error)
+		}
+	}
+
 	async createCharacter(req: Request, res: Response, next: NextFunction) {
 		try {
 			const dto = new CreateCharacterDto(req.body)
@@ -33,19 +45,6 @@ class CharactersController {
 			const id = Number(req.params.id)
 
 			const character = await charactersService.updateCharacter(id, dto)
-
-			responseToClient(res, character)
-		} catch (error) {
-			next(error)
-		}
-	}
-
-	async toggleActiveCharacter(req: Request, res: Response, next: NextFunction) {
-		try {
-			const id = Number(req.params.id)
-			const active = req.query.active ? Boolean(req.query.active) : undefined
-
-			const character = await charactersService.toggleActiveCharacter(id, active)
 
 			responseToClient(res, character)
 		} catch (error) {

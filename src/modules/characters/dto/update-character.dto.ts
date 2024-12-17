@@ -1,3 +1,19 @@
-import CreateCharacterDto from "./create-character.dto"
+export default class UpdateCharacterDto {
+	readonly name?: string
+	readonly description?: string
+	readonly image?: string
+	readonly price?: number
+	readonly specifications?: string
+	readonly public?: boolean
+	readonly active?: boolean
 
-export default class UpdateCharacterDto extends CreateCharacterDto {}
+	constructor(body: any) {
+		this.name = body.name
+		this.description = body.description
+		this.image = body.image
+		this.price = body.price
+		this.specifications = body.specifications
+		this.public = body.public
+		this.active = body.active
+	}
+}

@@ -1,6 +1,8 @@
 import { BelongsToMany, Column, DataType, Model, Table } from "sequelize-typescript"
 import { User } from "./User.model"
 import { UserCard } from "./UserCard.model"
+import { Deck } from "./Deck.model"
+import { DeckCard } from "./DeckCard.model"
 
 @Table({ tableName: "cards" })
 export class Card extends Model {
@@ -25,6 +27,12 @@ export class Card extends Model {
 	@Column({ allowNull: false, type: DataType.BOOLEAN, defaultValue: true })
 	active: boolean
 
+	@Column({ allowNull: false, type: DataType.BOOLEAN, defaultValue: false })
+	public: boolean
+
 	@BelongsToMany(() => User, () => UserCard)
 	users: User[]
+
+	@BelongsToMany(() => Deck, () => DeckCard)
+	decks: Deck[]
 }

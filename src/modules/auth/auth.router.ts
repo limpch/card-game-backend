@@ -6,7 +6,7 @@ const router = Router()
 
 router.post(
 	"/login",
-	body("telegramLogin", "Для логина необходим telegramLogin").isString(),
+	body("telegramUserData", "Для логина необходим telegramUserData").isString(),
 	authController.login
 )
 
