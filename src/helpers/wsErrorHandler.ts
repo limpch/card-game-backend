@@ -5,6 +5,8 @@ export const wsErrorHandler = (socket: Socket, cb: Function) => {
 		try {
 			return await cb(...args)
 		} catch (error) {
+			console.log(error)
+
 			socket.emit("error", error.message)
 		}
 	}

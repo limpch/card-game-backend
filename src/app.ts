@@ -1,6 +1,6 @@
 import express from "express"
 import { createServer } from "http"
-import { WSs } from "./WSs"
+import ws from "./WSs"
 import mainRouter from "./router"
 import { Sequelize } from "sequelize-typescript"
 import { dbConfig } from "./configs/db.config"
@@ -32,7 +32,7 @@ app.use(express.json())
 app.use("/api", mainRouter)
 
 const server = createServer(app)
-export const ws = new WSs(server)
+ws.setupServer(server)
 
 const sequelize = new Sequelize({
 	dialect: "postgres",

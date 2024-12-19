@@ -1,15 +1,16 @@
 import { instrument } from "@socket.io/admin-ui"
 import { Server } from "socket.io"
 import { ApiError } from "src/common/ApiError"
+import { gameMatchmakingRouter } from "src/modules/game/GameMatchmaking/gameMatchmaking.router"
 import { gameRoomRouter } from "src/modules/game/GameRoom/GameRoom.router"
 import gameStateService from "src/modules/game/GameState/gameState.service"
-import gameUserService from "src/modules/game/GameUser/GameUser.service"
+import GameUser from "src/modules/game/GameUser/gameUser.model"
 import { tokenService } from "src/modules/token/token.service"
 
-export class WSs {
-	io: Server
+class WSs {
+	io: Server = null
 
-	constructor(server: any) {
+	setupServer(server: any) {
 		this.io = new Server(server, {
 			cors: {
 				origin: ["http://localhost:3000", "https://admin.socket.io"],
@@ -17,32 +18,35 @@ export class WSs {
 			},
 		})
 
-		instrument(this.io, {
-			auth: false,
-			mode: "development",
-		})
+		// instrument(this.io, {
+		// 	auth: false,
+		// 	mode: "development",
+		// })
 
-		this.io.use((socket, next) => {
-			const token = socket.handshake.headers.authorization
-			if (!token) return next(new ApiError("Unauthorized"))
-			const user = tokenService.verifyToken(token)
-			socket.data.user = user
-			next()
-		})
-
+		this.setupAuthMiddleware()
 		this.serveConnection()
 	}
 
-	serveConnection() {
+	private setupAuthMiddleware() {
+		this.io.use((socket, next) => {
+			const token = socket.handshake.headers.authorization
+			if (!token) return next(new ApiError("Unauthorized"))
+			const _user = tokenService.verifyToken(token)
+
+			const user = new GameUser(_user, socket.id)
+
+			socket.data.user = user
+			next()
+		})
+	}
+
+	private serveConnection() {
 		setInterval(() => {
 			this.io.emit("state:online", gameStateService.getOnline())
 		}, 1000)
 
 		this.io.on("connection", socket => {
-			const userPayload = socket.data.user
-			const user = gameUserService.createUser(userPayload, socket.id)
-
-			console.log(user)
+			const user = socket.data.user
 
 			gameStateService.addUser(user)
 
@@ -50,7 +54,12 @@ export class WSs {
 				gameStateService.removeUser(user.id)
 			})
 
-			gameRoomRouter(socket, user)
+			gameRoomRouter(socket)
+			gameMatchmakingRouter(socket)
 		})
 	}
 }
+
+const ws = new WSs()
+
+export default ws

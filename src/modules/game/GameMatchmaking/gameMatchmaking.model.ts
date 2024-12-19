@@ -1,15 +1,16 @@
 import { Socket } from "socket.io"
-import gameRoomService from "../GameRoom/gameRoom.service"
 import gameStateService from "../GameState/gameState.service"
 import GameUser from "../GameUser/gameUser.model"
+import GameRoom from "../GameRoom/GameRoom.model"
+import ws from "src/WSs"
 
-interface UserWithSocket {
+interface IMatchmakingUser {
 	user: GameUser
 	socket: Socket
 }
 
 class GameMatchmaking {
-	usersInQueue: UserWithSocket[] = []
+	usersInQueue: IMatchmakingUser[] = []
 
 	constructor() {
 		this.usersInQueue = []
@@ -25,26 +26,32 @@ class GameMatchmaking {
 		this.usersInQueue = this.usersInQueue.filter(u => u.user.id !== user.id)
 	}
 
-	private startMatchmakingTimer() {
+	private async startMatchmakingTimer() {
 		const isRoomsUnderLimit = gameStateService.isRoomsUnderLimit()
-		const isUsersInQueueEnough = this.usersInQueue.length < 2
+		const isUsersInQueueEnough = this.usersInQueue.length > 1
 
 		const isCreateRoom = isUsersInQueueEnough && isRoomsUnderLimit
 
 		let intervalTime = isCreateRoom ? 300 : 3000
 
-		setTimeout(() => {
+		setTimeout(async () => {
 			if (isCreateRoom) {
 				const firstUser = this.usersInQueue.shift()
 				const secondUser = this.usersInQueue.shift()
 
-				const room = gameRoomService.createEmptyRoom()
+				const room = new GameRoom()
+				room.isFromMatchmaking = true
 				gameStateService.addRoom(room)
 
-				room.join(firstUser.user)
-				room.join(secondUser.user)
+				firstUser.user.joinRoom(room.id)
+				await room.join(firstUser.user)
+				firstUser.socket.join(room.id)
 
-				// TODO: start game
+				secondUser.user.joinRoom(room.id)
+				await room.join(secondUser.user)
+				secondUser.socket.join(room.id)
+
+				room.notifyPlayers(room.getRoomInfo(), "matched")
 			}
 
 			this.startMatchmakingTimer()

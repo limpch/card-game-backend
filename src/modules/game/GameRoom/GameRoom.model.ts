@@ -1,18 +1,21 @@
 import GameUser from "../GameUser/gameUser.model"
 import { nanoid } from "nanoid"
 import { ApiError } from "src/common/ApiError"
-import { ws } from "src/app"
 import { userService } from "src/modules/user/user.service"
 import decksService from "src/modules/decks/decks.service"
 import GamePlayer from "../GamePlayer/GamePlayer.model"
 import { IPlayerInfo } from "src/types/player"
 import gameStateService from "../GameState/gameState.service"
+import { TRoomNotifyEvents } from "src/types/room"
+import ws from "src/WSs"
 
 export default class GameRoom {
 	id: string
+	isFromMatchmaking: boolean = false
+
 	players: [GamePlayer, GamePlayer] = [null, null]
 
-	startTimerNumber: number = 60
+	startTimerNumber: number = 20
 	startTimerInterval: NodeJS.Timeout
 
 	destroyRoomTimerNumber: number = 60
@@ -42,15 +45,6 @@ export default class GameRoom {
 		const emptySlotIndex = this.players[0] === null ? 0 : 1
 		this.players[emptySlotIndex] = player
 
-		const roomInfoPayload = {
-			players: this.players.map(player => player?.getPayloadInfo() || null),
-			roomId: this.id,
-		}
-
-		ws.io.to(user.socketId).emit("room:joined", roomInfoPayload)
-		ws.io.to(this.id).emit("room:update:joined", roomInfoPayload)
-
-		// TODO: start game
 		if (this.isFull()) this.startGame()
 	}
 
@@ -58,16 +52,20 @@ export default class GameRoom {
 		if (this.players[0].playerInfo.id === user.id) this.players[0] = null
 		else this.players[1] = null
 
-		const roomInfoPayload = {
-			players: this.players.map(player => player?.getPayloadInfo() || null),
-			roomId: this.id,
-		}
-
-		ws.io.to(this.id).emit("room:update:leaved", roomInfoPayload)
-
 		if (this.startTimerInterval) clearInterval(this.startTimerInterval)
 
 		if (this.isEmpty()) gameStateService.removeRoom(this.id)
+	}
+
+	getRoomInfo() {
+		return {
+			players: this.players.map(player => player?.getPayloadInfo() || null),
+			roomId: this.id,
+		}
+	}
+
+	notifyPlayers(payload: any, event: TRoomNotifyEvents) {
+		ws.io.to(this.id).emit(`room:update:${event}`, payload)
 	}
 
 	private startGame() {
@@ -82,7 +80,7 @@ export default class GameRoom {
 				// this.gameProcess = new GameProcess()
 			}
 
-			ws.io.to(this.id).emit("room:update:startTimer", this.startTimerNumber)
+			this.notifyPlayers(this.startTimerNumber, "startTimer")
 		}, 1000)
 	}
 

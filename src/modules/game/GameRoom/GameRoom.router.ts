@@ -1,21 +1,20 @@
 import { Socket } from "socket.io"
-import GameUser from "../GameUser/gameUser.model"
-import gameRoomService from "./gameRoom.service"
+import gameRoomController from "./gameRoom.controller"
 import { IWsRoute, wsRouter } from "src/helpers/wsRouter"
 
-export const gameRoomRouter = (socket: Socket, user: GameUser) => {
+export const gameRoomRouter = (socket: Socket) => {
 	const routes: IWsRoute[] = [
 		{
 			route: "room:create",
-			handler: gameRoomService.createRoom(user, socket),
+			handler: gameRoomController.createRoom(socket),
 		},
 		{
 			route: "room:join",
-			handler: gameRoomService.joinRoom(user, socket),
+			handler: gameRoomController.joinRoom(socket),
 		},
 		{
 			route: "room:leave",
-			handler: gameRoomService.leaveRoom(user, socket),
+			handler: gameRoomController.leaveRoom(socket),
 		},
 	]
 

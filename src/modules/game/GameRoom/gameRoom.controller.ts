@@ -4,13 +4,10 @@ import GameUser from "../GameUser/gameUser.model"
 import GameRoom from "./GameRoom.model"
 import { ApiError } from "src/common/ApiError"
 
-class GameRoomService {
-	createEmptyRoom() {
-		return new GameRoom()
-	}
-
-	createRoom(user: GameUser, socket: Socket) {
+class GameRoomController {
+	createRoom(socket: Socket) {
 		return async () => {
+			const user = socket.data.user as GameUser
 			const room = new GameRoom()
 			gameStateService.addRoom(room)
 			socket.emit("room:created", room.id)
@@ -22,8 +19,9 @@ class GameRoomService {
 		}
 	}
 
-	joinRoom(user: GameUser, socket: Socket) {
+	joinRoom(socket: Socket) {
 		return async (roomId: string) => {
+			const user = socket.data.user as GameUser
 			const userInRoom = user.inRoom()
 			if (userInRoom) throw new ApiError("Вы уже в комнате")
 
@@ -31,24 +29,43 @@ class GameRoomService {
 
 			await room.join(user)
 
+			const roomInfoPayload = room.getRoomInfo()
+
+			room.notifyPlayers(roomInfoPayload, "joined")
+
 			user.joinRoom(roomId)
-			socket.join(roomId)
+			await socket.join(roomId)
+			socket.emit("room:joined", roomInfoPayload)
 		}
 	}
 
-	leaveRoom(user: GameUser, socket: Socket) {
-		return () => {
+	leaveRoom(socket: Socket) {
+		return async () => {
+			const user = socket.data.user as GameUser
 			const roomId = user.roomId
 
 			if (!roomId) throw new ApiError("Вы не в комнате")
 
-			socket.leave(roomId)
-			user.leaveRoom()
-
 			const room = gameStateService.findRoom(roomId)
-			room.leave(user)
+
+			if (room.isFromMatchmaking) {
+				room.leave(user)
+
+				await socket.leave(roomId)
+
+				user.leaveRoom()
+
+				room.notifyPlayers("matchmaking", "destroyed")
+			} else {
+				room.leave(user)
+
+				await socket.leave(roomId)
+				user.leaveRoom()
+
+				room.notifyPlayers(room.getRoomInfo(), "leaved")
+			}
 		}
 	}
 }
 
-export default new GameRoomService()
+export default new GameRoomController()
