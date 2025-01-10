@@ -33,7 +33,17 @@ class DecksService {
 
 		if (!deck) throw new ApiError("Доска не найдена", 404)
 
-		return deck.dataValues as IDeck
+		const cards = deck.dataValues.cards.map(card => ({
+			...card.dataValues,
+			specifications: JSON.parse(card.specifications),
+		}))
+
+		const deckData: IDeck = {
+			id: deck.dataValues.id,
+			cards,
+		}
+
+		return deckData
 	}
 
 	async update(userId: number, deckId: number, cards: number[]) {

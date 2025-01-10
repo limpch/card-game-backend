@@ -17,8 +17,8 @@ import { Deck } from "./Deck.model"
 
 @Table({ tableName: "users" })
 export class User extends Model {
-	@Column({ allowNull: false, unique: true, type: DataType.STRING })
-	telegramLogin: string
+	@Column({ allowNull: false, unique: true, type: DataType.INTEGER })
+	telegramId: number
 
 	@Column({ allowNull: false, type: DataType.STRING, defaultValue: "user" })
 	role: string

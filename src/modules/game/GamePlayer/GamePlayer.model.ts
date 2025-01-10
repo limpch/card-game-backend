@@ -21,7 +21,7 @@ export default class GamePlayer {
 	getPayloadInfo() {
 		return {
 			...this.playerInfo,
-			character: this.character,
+			socketId: undefined,
 		}
 	}
 

@@ -8,6 +8,8 @@ import { IPlayerInfo } from "src/types/player"
 import gameStateService from "../GameState/gameState.service"
 import { TRoomNotifyEvents } from "src/types/room"
 import ws from "src/WSs"
+import GameProcess from "../GameProcess/GameProcess.model"
+import gameProcessService from "../GameProcess/gameProcess.service"
 
 export default class GameRoom {
 	id: string
@@ -15,7 +17,7 @@ export default class GameRoom {
 
 	players: [GamePlayer, GamePlayer] = [null, null]
 
-	startTimerNumber: number = 20
+	startTimerNumber: number = 30
 	startTimerInterval: NodeJS.Timeout
 
 	destroyRoomTimerNumber: number = 60
@@ -70,14 +72,16 @@ export default class GameRoom {
 
 	private startGame() {
 		if (this.startTimerInterval) clearInterval(this.startTimerInterval)
-		this.startTimerNumber = 60
+		this.startTimerNumber = 30
 
 		this.startTimerInterval = setInterval(() => {
 			this.startTimerNumber--
 			if (this.startTimerNumber === 0) {
 				clearInterval(this.startTimerInterval)
-				// TODO: start game
-				// this.gameProcess = new GameProcess()
+				this.gameProcess = new GameProcess(this.players, this.id)
+				setTimeout(() => {
+					gameProcessService.start(this.gameProcess)
+				}, 2000)
 			}
 
 			this.notifyPlayers(this.startTimerNumber, "startTimer")

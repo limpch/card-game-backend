@@ -1,6 +1,6 @@
 export interface IUserPayload {
 	id: number
-	telegramLogin: string
+	telegramId: number
 	role: string
 	name: string
 }

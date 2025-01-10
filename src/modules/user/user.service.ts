@@ -12,8 +12,8 @@ import { IPlayerFromDb } from "src/types/player"
 class UserService {
 	async create(createUserDto: CreateUserDto) {
 		const createdUser = await User.create({
-			telegramLogin: createUserDto.telegramLogin,
-			role: createUserDto.telegramLogin === "admin" ? "admin" : "user",
+			telegramId: createUserDto.telegramId,
+			role: createUserDto.telegramId === 1 ? "admin" : "user",
 		})
 
 		const freeCards = await cardsService.getAllFreeCards()
@@ -36,14 +36,14 @@ class UserService {
 
 		await Deck.create({ user_id: createdUser.id })
 
-		const user = await this.findExtendedOne(createUserDto.telegramLogin)
+		const user = await this.findExtendedOne(createUserDto.telegramId)
 
 		return user
 	}
 
-	async findExtendedOne(telegramLogin: string) {
+	async findExtendedOne(telegramId: number) {
 		const user = await User.findOne({
-			where: { telegramLogin },
+			where: { telegramId },
 			include: [
 				{ model: Card, as: "cards", attributes: ["id"], through: { attributes: [] } },
 				{ model: Character, as: "characters", attributes: ["id"], through: { attributes: [] } },
@@ -63,7 +63,7 @@ class UserService {
 	async findOneById(id: number) {
 		const user = await User.findOne({
 			where: { id },
-			attributes: ["id", "telegramLogin", "activeCharacterId"],
+			attributes: ["id", "telegramId", "activeCharacterId"],
 			// include: [{ model: Character, as: "activeCharacter", attributes: ["id", "specifications"] }],
 		})
 

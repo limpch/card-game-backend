@@ -29,14 +29,18 @@ class WSs {
 
 	private setupAuthMiddleware() {
 		this.io.use((socket, next) => {
-			const token = socket.handshake.headers.authorization
-			if (!token) return next(new ApiError("Unauthorized"))
-			const _user = tokenService.verifyToken(token)
+			try {
+				const token = socket.handshake.headers.authorization
+				if (!token) return next(new ApiError("Unauthorized"))
+				const _user = tokenService.verifyToken(token)
 
-			const user = new GameUser(_user, socket.id)
+				const user = new GameUser(_user, socket.id)
 
-			socket.data.user = user
-			next()
+				socket.data.user = user
+				next()
+			} catch (error) {
+				next(new ApiError("Unauthorized"))
+			}
 		})
 	}
 

@@ -1,1 +1,7 @@
-export type TGameProcessEvents = "firstAction" | "roundEnd" | "gameEnd" | "roundStart"
+export type TGameProcessEvents =
+	| "firstAction"
+	| "roundEnd"
+	| "gameEnd"
+	| "roundStart"
+	| "castStarts"
+	| "castResults"

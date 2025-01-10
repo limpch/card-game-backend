@@ -1,3 +1,3 @@
 export class CreateUserDto {
-	constructor(public telegramLogin: string) {}
+	constructor(public telegramId: number) {}
 }

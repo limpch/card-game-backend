@@ -7,6 +7,13 @@ export interface ICard {
 
 export interface ICardSpecifications {
 	ap: number
+
+	onTarget?: ICastInfo
+
+	onCaster?: ICastInfo
+}
+
+export interface ICastInfo {
 	actions: ICardAction[]
 	effects: ICardEffect[]
 }
@@ -15,6 +22,7 @@ export interface ICardAction {
 	action: TActions
 	value: number
 	type?: TEffects
+	ignoreArmor?: boolean
 }
 
 export interface ICardEffect {

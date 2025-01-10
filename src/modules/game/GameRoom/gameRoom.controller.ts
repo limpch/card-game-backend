@@ -10,12 +10,13 @@ class GameRoomController {
 			const user = socket.data.user as GameUser
 			const room = new GameRoom()
 			gameStateService.addRoom(room)
-			socket.emit("room:created", room.id)
 
 			await room.join(user)
 
 			user.joinRoom(room.id)
 			socket.join(room.id)
+
+			socket.emit("room:created", room.getRoomInfo())
 		}
 	}
 
